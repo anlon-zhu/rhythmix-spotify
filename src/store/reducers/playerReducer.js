@@ -5,6 +5,11 @@ export const playerReducer = (state = {}, action) => {
         ...state,
         status: action.status
       };
+    case 'SEGMENTS':
+      return {
+        ...state,
+        segments: action.segments
+      };
     default:
       return state;
   }

@@ -1,6 +1,6 @@
-import React, { Component } from 'react';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
+import React, { Component } from "react";
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
 
 import {
   nextSong,
@@ -9,24 +9,33 @@ import {
   playSong,
   seekSong,
   shuffle,
-  repeatContext
-} from '../store/actions/playerActions';
+  repeatContext,
+  getSegments,
+} from "../store/actions/playerActions";
 
-import { containsCurrentSong } from '../store/actions/libraryActions';
+import { containsCurrentSong } from "../store/actions/libraryActions";
 
-export default function(ComposedComponent) {
+export default function (ComposedComponent) {
   class PlayerHoc extends Component {
     shouldComponentUpdate(nextProps) {
       return nextProps.playing || (this.props.playing && !nextProps.playing);
     }
 
     componentDidUpdate(prevProps) {
-      if (prevProps.currentSong.id !== this.props.currentSong.id) {
+      if (
+        prevProps.currentSong.id !== this.props.currentSong.id ||
+        (!prevProps.playing && this.props.playing)
+      ) {
         const id = this.props.currentSong.id;
         const other = this.props.currentSong.linked_from
           ? this.props.currentSong.linked_from.id
           : null;
         this.props.containsCurrentSong(other ? `${id},${other}` : id);
+
+        // Dispatch getSegments action when a new song is loaded
+        if (id) {
+          this.props.getSegments(id);
+        }
       }
     }
 
@@ -39,7 +48,7 @@ export default function(ComposedComponent) {
     );
   }
 
-  const mapStateToProps = state => {
+  const mapStateToProps = (state) => {
     return {
       currentSong: state.playerReducer.status
         ? state.playerReducer.status.track_window.current_track
@@ -56,11 +65,12 @@ export default function(ComposedComponent) {
         : false,
       repeatActive: state.playerReducer.status
         ? state.playerReducer.status.repeat_mode !== 0
-        : false
+        : false,
+      segments: state.playerReducer.segments,
     };
   };
 
-  const mapDispatchToProps = dispatch => {
+  const mapDispatchToProps = (dispatch) => {
     return bindActionCreators(
       {
         nextSong,
@@ -70,14 +80,12 @@ export default function(ComposedComponent) {
         seekSong,
         shuffle,
         repeatContext,
-        containsCurrentSong
+        containsCurrentSong,
+        getSegments,
       },
       dispatch
     );
   };
 
-  return connect(
-    mapStateToProps,
-    mapDispatchToProps
-  )(PlayerHoc);
+  return connect(mapStateToProps, mapDispatchToProps)(PlayerHoc);
 }

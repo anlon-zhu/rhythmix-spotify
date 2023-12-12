@@ -1,22 +1,22 @@
-import React, { Component } from 'react';
+import React, { Component } from "react";
 
-import { connect } from 'react-redux';
+import { connect } from "react-redux";
 
-import Header from '../../components/header/header';
-import Footer from '../../components/footer/footer';
+import Header from "../../components/header/header";
+import Footer from "../../components/footer/footer";
 
-import Browse from '../../components/sections/browse/browser';
-import Songs from '../../components/sections/songList/songList';
-import Playlist from '../../components/sections/playlist/playlist';
-import Artist from '../../components/sections/artist/artist';
-import Album from '../../components/sections/album/album';
-import Search from '../../components/sections/search/search';
-import Albums from '../../components/sections/top/albums';
-import Artists from '../../components/sections/top/artists';
-import Modal from '../../components/playlistModal/modal';
+import Songs from "../../components/sections/songList/songList";
+import Playlist from "../../components/sections/playlist/playlist";
+import Artist from "../../components/sections/artist/artist";
+import Album from "../../components/sections/album/album";
+import Search from "../../components/sections/search/search";
+import Albums from "../../components/sections/top/albums";
+import Artists from "../../components/sections/top/artists";
+import Modal from "../../components/playlistModal/modal";
+import MusicVisualizerModal from "./musicVisualizerModal";
 
-import defaultProfile from './images/profile.png';
-import './mainSection.css';
+import defaultProfile from "./images/profile.png";
+import "./mainSection.css";
 
 class MainSection extends Component {
   render = () => {
@@ -32,15 +32,22 @@ class MainSection extends Component {
         <Header username={name || id} img={img} />
         <Modal />
         <div className="main-section-container">
-          {this.props.view === 'browse' ? <Browse /> : null}
-          {this.props.view === 'playlist' ? <Playlist /> : null}
-          {this.props.view === 'recently' ? <Songs recently /> : null}
-          {this.props.view === 'songs' ? <Songs /> : null}
-          {this.props.view === 'artist' ? <Artist /> : null}
-          {this.props.view === 'album' ? <Album /> : null}
-          {this.props.view === 'search' ? <Search /> : null}
-          {this.props.view === 'albums' ? <Albums /> : null}
-          {this.props.view === 'artists' ? <Artists /> : null}
+          {this.props.view === "playlist" ? <Playlist /> : null}
+          {this.props.view === "recently" ? <Songs recently /> : null}
+          {this.props.view === "songs" ? <Songs /> : null}
+          {this.props.view === "artist" ? <Artist /> : null}
+          {this.props.view === "album" ? <Album /> : null}
+          {this.props.view === "search" ? <Search /> : null}
+          {this.props.view === "albums" ? <Albums /> : null}
+          {this.props.view === "artists" ? <Artists /> : null}
+          {this.props.segments ? (
+            <MusicVisualizerModal
+              segments={this.props.segments ? this.props.segments : []}
+              status={this.props.status ? this.props.status : null}
+            />
+          ) : (
+            <MusicVisualizerModal />
+          )}
         </div>
         <Footer />
       </div>
@@ -48,10 +55,12 @@ class MainSection extends Component {
   };
 }
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return {
     user: state.userReducer.user,
-    view: state.uiReducer.view
+    view: state.uiReducer.view,
+    segments: state.playerReducer.segments,
+    status: state.playerReducer.status,
   };
 };
 

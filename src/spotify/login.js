@@ -6,7 +6,6 @@ export default {
     let scopes = [
       'streaming',
       'user-read-private',
-      'user-read-birthdate',
       'user-read-email',
       'user-read-recently-played',
       'user-read-playback-state',
@@ -17,6 +16,7 @@ export default {
       'playlist-modify-public',
       'playlist-modify-private',
       'user-top-read'
+
     ].join(' ');
 
     let scopes_encoded = scopes.replace(' ', '%20');

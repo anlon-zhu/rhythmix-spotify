@@ -1,15 +1,15 @@
-import React from 'react';
+import React from "react";
 
-import withUiActions from '../../../hoc/uiHoc';
-import withStatus from '../../../hoc/statusHoc';
+import withUiActions from "../../../hoc/uiHoc";
+import withStatus from "../../../hoc/statusHoc";
 
 const artistName = {
   fontFamily: "'Proxima Thin', Georgia, sans-serif",
-  color: '#aaa',
-  fontSize: 12
+  color: "#aaa",
+  fontSize: 12,
 };
 
-const detailsSection = props => {
+const detailsSection = (props) => {
   const artists = props.artists.length;
   return (
     <div className="details-section">
@@ -17,7 +17,7 @@ const detailsSection = props => {
         <p
           onClick={() => props.onAlbumClick(props.album)}
           className={
-            'song-name' + (props.songName.length > 30 ? ' overflow' : '')
+            "song-name" + (props.songName.length > 30 ? " overflow" : "")
           }
         >
           {props.songName}
@@ -41,11 +41,11 @@ const detailsSection = props => {
           <span key={i}>
             <span
               className="artist"
-              onClick={() => props.onArtistClick(artist.uri.split(':')[2])}
+              onClick={() => props.onArtistClick(artist.uri.split(":")[2])}
             >
               {artist.name}
             </span>
-            {i + 1 !== artists ? ', ' : ''}
+            {i + 1 !== artists ? ", " : ""}
           </span>
         ))}
       </div>

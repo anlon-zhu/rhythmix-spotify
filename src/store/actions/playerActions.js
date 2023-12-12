@@ -78,3 +78,18 @@ export const shuffle = status => {
     type: 'Shuffle'
   };
 };
+
+export const getSegments = id => {
+  return dispatch => {
+    axios
+      .get(`/audio-analysis/${id}`)
+      .then(res => {
+        console.log(res.data.segments);
+        dispatch({
+          type: 'SEGMENTS',
+          segments: res.data.segments
+        });
+      })
+      .catch(err => console.log(err));
+  };
+}

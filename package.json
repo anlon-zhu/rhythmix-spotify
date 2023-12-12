@@ -20,8 +20,8 @@
   "scripts": {
     "build-css": "sass --load-path=src src/:src/",
     "watch-css": "yarn run build-css && sass -w --load-path=src src/:src/",
-    "start-js": "react-scripts start",
-    "start": "npm-run-all -p watch-css start-js",
+    "start-js": "export SET NODE_OPTIONS=--openssl-legacy-provider && react-scripts start",
+    "start": "export SET NODE_OPTIONS=--openssl-legacy-provider && npm-run-all -p watch-css start-js",
     "build-js": "react-scripts build",
     "build": "npm-run-all build-css build-js",
     "test": "react-scripts test --env=jsdom",
