@@ -2,12 +2,21 @@ import React, { useState, useEffect, useRef } from "react";
 import "./fallingRects.css"; // Import your CSS file
 
 const FallingRectangles = ({ segments, isPlaying, currentPlaybackTime }) => {
+  /* * * * * * * */
+  /*   STATES    */
+  /* * * * * * * */
   const [activeRectangles, setActiveRectangles] = useState({});
   const [score, setScore] = useState(0);
   const rectangleRefs = useRef({});
-
-  const timersRef = useRef([]); // To handle timers
   const numberOfLanes = 8;
+  const [laneFeedback, setLaneFeedback] = useState(
+    Array(numberOfLanes).fill({ message: null, color: null })
+  );
+
+  /* * * * * * * */
+  /*   CONSTS    */
+  /* * * * * * * */
+  const timersRef = useRef([]); // To handle timers
   const laneColors = [
     "#FFB3BA",
     "#FFDFBA",
@@ -40,6 +49,10 @@ const FallingRectangles = ({ segments, isPlaying, currentPlaybackTime }) => {
     return Number.isInteger(lane) ? lane : null;
   };
 
+  /* * * * * * * */
+  /*   score     */
+  /* * * * * * * */
+
   const maxScorePerSegment = 1000000 / segments.length; // Max score per segment
 
   // Score computed such that perfect score is 1000000
@@ -52,26 +65,41 @@ const FallingRectangles = ({ segments, isPlaying, currentPlaybackTime }) => {
     );
   };
 
-  const hitThreshold = 20; // Window in pixels to count as a hit
-
-  const linePositionFromBottom = 30; // Assuming the line is at the bottom
+  const perfectThreshold = 10; // Window in pixels to count as a perfect hit
+  const goodThreshold = 30; // Window in pixels to count as a good hit
+  const hitThreshold = 50; // Window in pixels to count as a hit
+  const linePositionFromBottom = 40; // Assuming the line is at the bottom
   const checkRectanglePosition = (lane) => {
-    let hit = false;
-
     Object.entries(rectangleRefs.current).forEach(
       ([rectangleId, rectElement]) => {
         if (rectElement && activeRectangles[rectangleId].lane === lane) {
           const rectBottom = rectElement.getBoundingClientRect().bottom;
+          console.log("rect", rectBottom);
           const containerBottom =
             rectElement.parentElement.getBoundingClientRect().bottom;
-          const distanceFromLine =
-            containerBottom - rectBottom - linePositionFromBottom;
+          console.log("cont", containerBottom);
+          const distanceFromLine = Math.abs(
+            containerBottom - rectBottom - linePositionFromBottom
+          );
+          console.log(distanceFromLine);
 
-          if (Math.abs(distanceFromLine) <= hitThreshold) {
-            hit = true;
+          var feedbackMessage;
+
+          if (distanceFromLine <= hitThreshold) {
             // Calculate and update score
             const segmentScore = calculateScore(Math.abs(distanceFromLine));
             setScore((prevScore) => prevScore + segmentScore);
+
+            // Inside checkRectanglePosition, after determining hit accuracy
+            if (distanceFromLine <= perfectThreshold) {
+              feedbackMessage = { message: "Perfect!", color: "green" };
+              console.log("perfect");
+            } else if (distanceFromLine <= goodThreshold) {
+              feedbackMessage = { message: "Good!", color: "yellow" };
+              console.log("good");
+            } else {
+              feedbackMessage = { message: "Missed!", color: "gray" };
+            }
 
             // Remove the rectangle
             setActiveRectangles((prev) => {
@@ -79,16 +107,36 @@ const FallingRectangles = ({ segments, isPlaying, currentPlaybackTime }) => {
               delete updatedRects[rectangleId];
               return updatedRects;
             });
+          } else {
+            // Provide feedback but don't remove
+            feedbackMessage = { message: "Missed!", color: "gray" };
           }
+
+          setLaneFeedback((prevFeedback) => {
+            const newFeedback = [...prevFeedback];
+            newFeedback[lane] = feedbackMessage;
+            return newFeedback;
+          });
+
+          setTimeout(() => {
+            setLaneFeedback((prevFeedback) => {
+              const newFeedback = [...prevFeedback];
+              newFeedback[lane] = { message: null, color: null };
+              return newFeedback;
+            });
+          }, 1000); // Match this duration with the CSS animation
         }
       }
     );
-
-    if (!hit) {
-      console.log("Missed!");
-    }
   };
 
+  /* * * * * * * */
+  /*   EFFECTS   */
+  /* * * * * * * */
+
+  /* * * * * * * */
+  /*   display   */
+  /* * * * * * * */
   useEffect(() => {
     // Clear existing timers when music is paused
     if (!isPlaying) {
@@ -103,7 +151,7 @@ const FallingRectangles = ({ segments, isPlaying, currentPlaybackTime }) => {
         // Block falls for 5000ms but we add 1000ms as arbitrary time due to lag
         const startTimeInMilliseconds = segment.start * 1000 - 6000;
         const rectangleId = `rect-${index}`;
-        const height = segment.duration * 100; // Scale duration to height
+        const height = 30; // Scale duration to height
         const lane = Math.floor(Math.random() * numberOfLanes); // Random lane assignment 1-8
         const color = laneColors[lane]; // Assign color based on lane
 
@@ -130,7 +178,7 @@ const FallingRectangles = ({ segments, isPlaying, currentPlaybackTime }) => {
               delete updatedRects[rectangleId];
               return updatedRects;
             });
-          }, startTimeInMilliseconds + 5000)
+          }, startTimeInMilliseconds + 6000)
         );
       });
 
@@ -138,6 +186,9 @@ const FallingRectangles = ({ segments, isPlaying, currentPlaybackTime }) => {
     return () => clearTimers();
   }, [segments, isPlaying]);
 
+  /* * * * * * * */
+  /*  keypress   */
+  /* * * * * * * */
   useEffect(() => {
     const handleKeyPress = (event) => {
       // Determine which key was pressed and map it to a lane
@@ -174,6 +225,18 @@ const FallingRectangles = ({ segments, isPlaying, currentPlaybackTime }) => {
           ></div>
         )
       )}
+      {laneFeedback.map((feedback, index) => (
+        <div
+          key={`${index}-${feedback.message}`}
+          className={`lane-feedback ${feedback.message ? "visible" : ""}`}
+          style={{
+            left: `${index * (100 / numberOfLanes)}%`,
+            color: feedback.message ? `${feedback.color}` : "none",
+          }}
+        >
+          {feedback.message}
+        </div>
+      ))}
       <div className="key-labels-container">
         {Object.keys(keyMappings).map((key) => (
           <div
